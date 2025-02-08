@@ -1,6 +1,15 @@
 
 <!-- This README avoids relative paths since it is also used as Doxygen's mainpage -->
 
+
+
+<!-- temporary v4 advertisement -->
+> [!IMPORTANT]
+> QuEST _**v4**_ is coming very soon with a new API, which is both greatly extended and accelerated. See some of the new features listed on the [Discussions](https://github.com/QuEST-Kit/QuEST/discussions) page. If you are beginning a new project with QuEST, consider using the in-development [v4](https://github.com/QuEST-Kit/QuEST/tree/v4) source. While this version is mostly complete, it currently lacks documentation and full unit tests. Please contact Tyson at `tyson.jones.input@gmail.com` to understand whether the v4 draft is safe to use in your application, and for help getting it running.
+
+
+
+
 <!-- banner -->
 [<img src="https://github.com/QuEST-Kit/QuEST/blob/master/doxyconfig/banner.png?raw=true" alt="The QuEST logo" width=500>](https://quest.qtechtheory.org)
 
