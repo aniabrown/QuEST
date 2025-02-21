@@ -4,7 +4,6 @@
 #include "macros.hpp"
 
 #include <vector>
-
 using std::vector;
 
 
@@ -16,7 +15,7 @@ using std::vector;
 
 int getLog2(qindex a) {
     DEMAND( a >= 0 );
-    DEMAND( (a & (a - 1)) == 0 )  // is pow2
+    DEMAND( (a & (a - 1)) == 0 );  // is pow2
 
     int n = 0;
     while (a >>= 1)
@@ -135,11 +134,17 @@ bool isDiagonal(qmatrix m) {
 }
 
 
-bool isUnitary(qmatrix m) {
+bool isApproxUnitary(qmatrix m) {
 
+    // should be identity
     qmatrix md = m * getConjugateTranspose(m);
-    qmatrix id = getIdentityMatrix(m.size());
-    return md == id;
+
+    for (size_t r=0; r<md.size(); r++)
+        for (size_t c=0; c<md.size(); c++)
+            if (abs(md[r][c] - (r==c)) > TEST_EPSILON)
+                return false;
+
+    return true;
 }
 
 
@@ -167,6 +172,18 @@ qmatrix getConjugateTranspose(qmatrix m) {
 }
 
 
+qmatrix getPowerOfDiagonalMatrix(qmatrix m, qcomp p) {
+    DEMAND( isDiagonal(m) );
+
+    qmatrix out = getZeroMatrix(m.size());
+
+    for (size_t i=0; i<m.size(); i++)
+        out[i][i] = pow(m[i][i], p);
+
+    return out;
+}
+
+
 qmatrix getExponentialOfDiagonalMatrix(qmatrix m) {
     DEMAND( isDiagonal(m) );
 
@@ -181,8 +198,27 @@ qmatrix getExponentialOfDiagonalMatrix(qmatrix m) {
 
 qmatrix getExponentialOfPauliMatrix(qreal arg, qmatrix m) {
     
+    // exp(-i arg/2 m) where m = prod(paulis)
     qmatrix id = getIdentityMatrix(m.size());
     qmatrix out = cos(arg/2)*id - 1_i*sin(arg/2)*m;
+    return out;
+}
+
+
+qmatrix getExponentialOfNormalisedPauliVector(qreal arg, qreal x, qreal y, qreal z) {
+
+    // exp(-arg/2 i [x^ X + y^ Y + z^ Z])
+    qreal n = sqrt(x*x + y*y + z*z);
+    x /= n;
+    y /= n;
+    z /= n;
+
+    qmatrix id = getIdentityMatrix(2);
+    qmatrix out = cos(arg/2)*id - 1_i*sin(arg/2)*(
+        x * getPauliMatrix(1) +
+        y * getPauliMatrix(2) +
+        z * getPauliMatrix(3));
+
     return out;
 }
 
@@ -253,12 +289,30 @@ qmatrix getKroneckerProduct(qmatrix a, qmatrix b) {
 
 
 /*
+ * MATRIX & SCALAR OPERATIONS
+ */
+
+
+qmatrix getKroneckerProduct(qmatrix m, int count) {
+    DEMAND( count >= 1 );
+
+    qmatrix out = getIdentityMatrix(1);
+
+    for (int n=0; n<count; n++)
+        out = getKroneckerProduct(out, m);
+
+    return out;
+}
+
+
+
+/*
  * MATRIX COLLECTIONS
  */
 
 
 bool isCompletelyPositiveTracePreserving(vector<qmatrix> matrices) {
-    DEMAND( matrices.size() >= 1 )
+    DEMAND( matrices.size() >= 1 );
 
     size_t dim = matrices[0].size();
     qmatrix id = getIdentityMatrix(dim);
