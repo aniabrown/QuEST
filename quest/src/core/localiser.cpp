@@ -939,9 +939,8 @@ void anyCtrlTwoOrAnyTargDenseMatrOnSuffix(Qureg qureg, vector<int> ctrls, vector
 }
 
 
-// T can be CompMatr2 or CompMatr
-template <typename T>
-void anyCtrlTwoOrAnyTargDenseMatr(Qureg qureg, vector<int> ctrls, vector<int> ctrlStates, vector<int> targs, T matr, bool conj) {
+void anyCtrlTwoOrAnyTargDenseMatr(Qureg qureg, vector<int> ctrls, vector<int> ctrlStates, vector<int> targs, auto matr, bool conj) {
+    // matr = CompMatr2 or CompMatr
 
     // node has nothing to do if all local amps violate control condition
     if (!doAnyLocalStatesHaveQubitValues(qureg, ctrls, ctrlStates))

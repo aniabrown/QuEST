@@ -193,9 +193,8 @@ string printer_getFloatPrecisionFlag() {
  */
 
 
-// type T can be any number, e.g. int, qindex, float, double, long double
-template <typename T>
-string floatToStr(T num, bool hideSign=false, int overrideSigFigs=-1) {
+string floatToStr(auto num, bool hideSign=false, int overrideSigFigs=-1) {
+    // num = any number, e.g. int, qindex, float, double, long double
 
     // write to stream (instead of calling to_string()) to auto-use scientific notation
     std::stringstream buffer;
@@ -783,9 +782,8 @@ void populateSingleColumnQcompmatr(qcompmatr &matr, qindex startInd, PauliStrSum
 }
 
 
-// T can be any 1D type, i.e. Qureg (.isDensity=0), FullStateDiagMatr, DiagMatr1, DiagMatr2, DiagMatr
-template <class T>
-void populateSingleColumnQcompmatr(qcompmatr &matr, qindex startInd, T obj) {
+void populateSingleColumnQcompmatr(qcompmatr &matr, qindex startInd, auto obj) {
+    // obj = any 1D object, i.e. Qureg (.isDensity=0), FullStateDiagMatr, DiagMatr1, DiagMatr2, DiagMatr
 
     // matr is single-column, and has been prior resized such that 
     // even before population, matr.size() is non-zero unless it is
@@ -799,13 +797,13 @@ void populateSingleColumnQcompmatr(qcompmatr &matr, qindex startInd, T obj) {
     util_tryAllocVector(column, numAmps, error_printerFailedToAllocTempMemory);
 
     // populate temp memory, potentially invoking CPU-GPU copying and communication...
-    if constexpr (util_isFullStateDiagMatr<T>()) {
+    if constexpr (util_isFullStateDiagMatr(obj)) {
         localiser_fullstatediagmatr_getElems(column.data(), obj, startInd, numAmps);
-    } else if constexpr (util_isQuregType<T>()) {
+    } else if constexpr (util_isQuregType(obj)) {
         localiser_statevec_getAmps(column.data(), obj, startInd, numAmps);
 
     // or invoking nothing...
-    } else if constexpr (util_isFixedSizeMatrixType<T>()) {
+    } else if constexpr (util_isFixedSizeMatrixType(obj)) {
         column = vector<qcomp>(obj.elems, obj.elems + numAmps);
 
     // or invoking merely a GPU-CPU copy 
@@ -844,9 +842,8 @@ void populateManyColumnQcompmatr(qcompmatr &matr, qindex startRow, qindex startC
 }
 
 
-// T can be qcomp** or qcomp(*)[]
-template <typename T>
-void populateManyColumnQcompmatrFromPtr(qcompmatr &matr, qindex startRow, qindex startCol, T elems) {
+void populateManyColumnQcompmatrFromPtr(qcompmatr &matr, qindex startRow, qindex startCol, auto elems) {
+    // elems = qcomp** or qcomp(*)[]
 
     if (matr.size() == 0)
         return;
@@ -858,11 +855,10 @@ void populateManyColumnQcompmatrFromPtr(qcompmatr &matr, qindex startRow, qindex
 }
 
 
-// T can be 2D matrix type, i.e CompMatr, CompMatr1, CompMatr2, SuperOp
-template <typename T>
-void populateManyColumnQcompmatr(qcompmatr &matr, qindex startRow, qindex startCol, T obj) {
+void populateManyColumnQcompmatr(qcompmatr &matr, qindex startRow, qindex startCol, auto obj) {
+    // obj = any 2D matrix type, i.e CompMatr, CompMatr1, CompMatr2, SuperOp
 
-    if constexpr (util_isFixedSizeMatrixType<T>())
+    if constexpr (util_isFixedSizeMatrixType(obj))
         populateManyColumnQcompmatrFromPtr(matr, startRow, startCol, obj.elems);
 
     else {
@@ -873,7 +869,7 @@ void populateManyColumnQcompmatr(qcompmatr &matr, qindex startRow, qindex startC
         // we expect square matrices to be small, we do not bother copying
         // the specifically displayed sub-matrix (like we do for Qureg and
         // FullStateDiagMatr); instead, we just copy over the whole matrix.
-        if constexpr (util_isHeapMatrixType<T>()) {
+        if constexpr (util_isHeapMatrixType(obj)) {
             auto gpuPtr = util_getGpuMemPtr(obj);
             if (mem_isAllocated(gpuPtr))
                 gpu_copyGpuToCpu(obj);
@@ -901,15 +897,15 @@ void populateMatrixQuadrants(MatrixQuadrantInds inds, qcompmatr &ul, qcompmatr &
 }
 
 
-// T can be all 1D and 2D types, i.e. CompMatr/1/2, DiagMatr1/2, FullStateDiagMatr, SuperOp,
-// and can furthermore be PauliStrSum (in order to print the real coefficients).
-// Importantly, this excludes KrausMap which is handled explicitly, and annoyingly, Qureg,
-// which must be handled seperately above (because it must runtime branch, not compile-time)
-template <class T>
-void populateMatrixQuadrants(MatrixQuadrantInds inds, qcompmatr &ul, qcompmatr &ur, qcompmatr &ll, qcompmatr &lr, T obj) {
+void populateMatrixQuadrants(MatrixQuadrantInds inds, qcompmatr &ul, qcompmatr &ur, qcompmatr &ll, qcompmatr &lr, auto obj) {
+
+    // obj can be all 1D and 2D types, i.e. CompMatr/1/2, DiagMatr1/2, FullStateDiagMatr, SuperOp,
+    // and can furthermore be PauliStrSum (in order to print the real coefficients).
+    // Importantly, this excludes KrausMap which is handled explicitly, and annoyingly, Qureg,
+    // which must be handled seperately above (because it must runtime branch, not compile-time)
 
     // dense matrices can populate as many as 4 quadrants
-    if constexpr (util_isDenseMatrixType<T>()) {
+    if constexpr (util_isDenseMatrixType(obj)) {
         populateManyColumnQcompmatr(ul, inds.upperStartRow, inds.leftStartCol,  obj);
         populateManyColumnQcompmatr(ur, inds.upperStartRow, inds.rightStartCol, obj);
         populateManyColumnQcompmatr(ll, inds.lowerStartRow, inds.leftStartCol,  obj);
@@ -959,14 +955,14 @@ void populateDensityMatrixColumnLabels(vector<string> &leftColLabels, vector<str
 }
 
 
-// T can be 2D types, e.g. Qureg (.isDensityMatrix=1), CompMatr/1/2, SuperOp.
-// importantly, it excludes KrausMap which is handled separately
-template <class T> 
-void printDenseSquareMatrix(T obj, string indent) {
+void printDenseSquareMatrix(auto obj, string indent) {
+
+    // obj can be 2D types, e.g. Qureg (.isDensityMatrix=1), CompMatr/1/2, SuperOp.
+    // importantly, it excludes KrausMap which is handled separately
 
     // determine the full matrix dimension
     qindex numRows;
-    if constexpr (util_isDenseMatrixType<T>())
+    if constexpr (util_isDenseMatrixType(obj))
         numRows = obj.numRows;
     else
         numRows = powerOf2(obj.numQubits); // this would be wrong for SuperOp
@@ -981,7 +977,7 @@ void printDenseSquareMatrix(T obj, string indent) {
 
     // columns are only labelled if given a distributed Qureg (they become sender node)
     vector<string> leftColLabels, rightColLabels;
-    if constexpr (util_isQuregType<T>())
+    if constexpr (util_isQuregType(obj))
         if (obj.isDistributed)
             populateDensityMatrixColumnLabels(leftColLabels, rightColLabels, obj, inds);
 
@@ -1041,9 +1037,8 @@ void print_elems(KrausMap map, string indent) {
  */
 
 
-// T can be Qureg (.isDistributed=1, .isDensityMatrix=0) or FullStateDiagMatr
-template <class T>
-void setRowLabelsToRanks(vector<string> &labels, int &lastRank, qindex rowIndOffset, T obj) {
+void setRowLabelsToRanks(vector<string> &labels, int &lastRank, qindex rowIndOffset, auto obj) {
+    // obj = Qureg (.isDistributed=1, .isDensityMatrix=0) or FullStateDiagMatr
 
     // we can afford to serially enumerate printed rows, since expected few
     for (size_t i=0; i<labels.size(); i++) {
@@ -1065,9 +1060,8 @@ void setRowLabelsToRanks(vector<string> &labels, int &lastRank, qindex rowIndOff
 }
 
 
-// T can be Qureg (.isDistributed=1, .isDensityMatrix=0) or FullStateDiagMatr
-template <class T>
-void populateDistributedVectorRowLabels(vector<string> &upperRowLabels, vector<string> &lowerRowLabels, T obj, MatrixQuadrantInds inds) {
+void populateDistributedVectorRowLabels(vector<string> &upperRowLabels, vector<string> &lowerRowLabels, auto obj, MatrixQuadrantInds inds) {
+    // obj = Qureg (.isDistributed=1, .isDensityMatrix=0) or FullStateDiagMatr
 
     // these might already contain kets; resize preserves existing elems
     upperRowLabels.resize(inds.numUpperLeftRows);
@@ -1084,9 +1078,8 @@ void populateDistributedVectorRowLabels(vector<string> &upperRowLabels, vector<s
 }
 
 
-// T can be any 1D type, e.g. Qureg (.isDensityMatrix=0), FullStateDiagMatr, DiagMatr/1/2
-template <class T>
-void printVector(T obj, string indent) {
+void printVector(auto obj, string indent) {
+    // obj = any 1D type, e.g. Qureg (.isDensityMatrix=0), FullStateDiagMatr, DiagMatr/1/2
 
     // divide vector into one of two column vectors (ul and ll; ur and lr stay empty)
     qcompmatr ul,ur,ll,lr;
@@ -1098,13 +1091,13 @@ void printVector(T obj, string indent) {
     // rows are only labelled if we're printing a Qureg...
     vector<string> upperRowLabels = {};
     vector<string> lowerRowLabels = {};
-    if constexpr (util_isQuregType<T>()) {
+    if constexpr (util_isQuregType(obj)) {
         upperRowLabels = getBasisKets(inds.upperStartRow, inds.numUpperLeftRows);
         lowerRowLabels = getBasisKets(inds.lowerStartRow, inds.numLowerLeftRows);
     }
 
     // and/or if the type is distributed
-    if constexpr (util_isDistributableType<T>())
+    if constexpr (util_isDistributableType(obj))
         if (obj.isDistributed)
             populateDistributedVectorRowLabels(upperRowLabels, lowerRowLabels, obj, inds);
 
@@ -1112,7 +1105,7 @@ void printVector(T obj, string indent) {
     vector<string> colLabels = {};
 
     // only successively indent each row when vector represets a diagonal matrix
-    bool indentEachRow = ! util_isQuregType<T>(); // since else diagonal
+    bool indentEachRow = ! util_isQuregType(obj); // since else diagonal
     string indentPerRow = (indentEachRow)? string(SET_SPACE_BETWEEN_DIAG_MATRIX_COLS, MATRIX_SPACE_CHAR) : ""; 
     string ellipsisChar = (indentEachRow)? DDOTS_CHAR : VDOTS_CHAR;
 
@@ -1237,9 +1230,7 @@ void printHeader(string name, vector<string> notes) {
 }
 
 
-
-template <class T>
-void printMatrixHeader(T matr, size_t numBytes) {
+void printMatrixHeader(auto matr, size_t numBytes) {
 
     bool isDiag = ! util_isDenseMatrixType<T>();
     bool isGpu = util_isGpuAcceleratedMatrix(matr);
@@ -1247,7 +1238,7 @@ void printMatrixHeader(T matr, size_t numBytes) {
     int numNodes = (isDistrib)? comm_getNumNodes() : 1;
 
     // print e.g. FullStateDiagMatr (8 qubits, 256 qcomps over 4 nodes, 1056 bytes per GPU):
-    printHeader(util_getMatrixTypeName<T>(), {
+    printHeader(util_getMatrixTypeName(matr), {
         getNumQubitsStr(matr.numQubits), 
         getNumMatrixElemsStr(util_getMatrixDim(matr), isDiag, numNodes),
         getMemoryCostsStr(numBytes, isDistrib, isGpu)});

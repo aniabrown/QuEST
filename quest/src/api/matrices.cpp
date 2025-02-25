@@ -78,11 +78,10 @@ DiagMatr2 getDiagMatr2(vector<qcomp> in) {
 
 
 // type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void freeHeapMatrix(T matr) {
+void freeHeapMatrix(auto matr) {
 
     // free the 1D or 2D matrix - safe even if nullptr
-    if constexpr (util_isDenseMatrixType<T>())
+    if constexpr (util_isDenseMatrixType(matr))
         cpu_deallocMatrix(matr.cpuElems, matr.numRows);
     else
         cpu_deallocArray(matr.cpuElems);
@@ -99,9 +98,8 @@ void freeHeapMatrix(T matr) {
 }
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-bool didAnyLocalAllocsFail(T matr) {
+bool didAnyLocalAllocsFail(auto matr) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
     // god help us if these single-integer malloc failed
     if (!mem_isAllocated(matr.isUnitary))    return true;
@@ -109,7 +107,7 @@ bool didAnyLocalAllocsFail(T matr) {
     if (!mem_isAllocated(matr.wasGpuSynced)) return true;
 
     // outer CPU memory should always be allocated
-    if constexpr (util_isDenseMatrixType<T>()) {
+    if constexpr (util_isDenseMatrixType(matr)) {
         if (!mem_isAllocated(matr.cpuElems, matr.numRows))
             return true;
     } else {
@@ -118,7 +116,7 @@ bool didAnyLocalAllocsFail(T matr) {
     }
 
     // if memory is 2D, we must also check each inner array was allocated
-    if constexpr (util_isDenseMatrixType<T>()) {
+    if constexpr (util_isDenseMatrixType(matr)) {
         if (!mem_isAllocated(matr.cpuElems, matr.numRows))
             return true;
     } else {
@@ -131,7 +129,7 @@ bool didAnyLocalAllocsFail(T matr) {
     if (getQuESTEnv().isGpuAccelerated && !isGpuAlloc) {
 
         // then FullStateDiagMatr GPU alloc failed only if it tried...
-        if constexpr (util_isFullStateDiagMatr<T>()) {
+        if constexpr (util_isFullStateDiagMatr(matr)) {
             if (matr.isGpuAccelerated)
                 return true;
             
@@ -145,9 +143,8 @@ bool didAnyLocalAllocsFail(T matr) {
 }
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void freeAllMemoryIfAnyAllocsFailed(T matr) {
+void freeAllMemoryIfAnyAllocsFailed(auto matr) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
     // ascertain whether any allocs failed on any node
     bool anyFail = didAnyLocalAllocsFail(matr);
@@ -160,9 +157,8 @@ void freeAllMemoryIfAnyAllocsFailed(T matr) {
 }
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void validateMatrixAllocs(T matr, const char* caller) {
+void validateMatrixAllocs(auto matr, const char* caller) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
     // free memory before throwing validation error to avoid memory leaks
     freeAllMemoryIfAnyAllocsFailed(matr);
@@ -170,9 +166,8 @@ void validateMatrixAllocs(T matr, const char* caller) {
 }
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void setInitialHeapFlags(T matr) {
+void setInitialHeapFlags(auto matr) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
     // set initial propreties of the newly created matrix to unknown
     *(matr.isUnitary)   = validate_STRUCT_PROPERTY_UNKNOWN_FLAG;
@@ -308,9 +303,8 @@ extern "C" FullStateDiagMatr createFullStateDiagMatr(int numQubits) {
  */
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void markMatrixAsSynced(T matr) {
+void markMatrixAsSynced(auto matr) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
     // indicate that the matrix is now permanently GPU synchronised, even
     // if we are not in GPU-accelerated mode (in which case it's never consulted)
@@ -323,9 +317,9 @@ void markMatrixAsSynced(T matr) {
 }
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void validateAndSyncMatrix(T matr, const char* caller) {
+void validateAndSyncMatrix(auto matr, const char* caller) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
+
     validate_matrixFields(matr, caller);
 
     // optionally overwrite GPU elements with user-modified CPU elements
@@ -352,12 +346,11 @@ extern "C" {
  */
 
 
-// type T can be CompMatr, DiagMatr or FullStateDiagMatr
-template <class T>
-void validateAndDestroyMatrix(T matrix, const char* caller) {
-    validate_matrixFields(matrix, caller);
+void validateAndDestroyMatrix(auto matr, const char* caller) {
+    // matr = CompMatr, DiagMatr or FullStateDiagMatr
 
-    freeHeapMatrix(matrix);
+    validate_matrixFields(matr, caller);
+    freeHeapMatrix(matr);
 }
 
 
@@ -376,10 +369,10 @@ extern "C" {
  * VARIABLE-SIZE MATRIX SETTERS VIA POINTERS
  */
 
-
-// type T can be qcomp** or vector<vector<qcomp>>, but qcomp(*)[] is handled by header
-template <typename T> 
-void setAndSyncDenseMatrElems(CompMatr out, T elems) {
+ 
+void setAndSyncDenseMatrElems(CompMatr out, auto elems) {
+    // elems = qcomp** or vector<vector<qcomp>>, but
+    // NOT qcomp(*)[] which is handled by matrices.h
     
     // copy elems into matrix's CPU memory
     cpu_copyMatrix(out.cpuElems, elems, out.numRows);
@@ -746,13 +739,13 @@ extern "C" void setFullStateDiagMatrFromMultiDimLists(FullStateDiagMatr out, voi
  */
 
 
-// type T can be CompMatr1, CompMatr2, CompMatr, DiagMatr1, DiagMatr2, DiagMatr, FullStateDiagMatr
-template<class T> 
-void validateAndPrintMatrix(T matr, const char* caller) {
+void validateAndPrintMatrix(auto matr, const char* caller) {
+    // matr = CompMatr1, CompMatr2, CompMatr, DiagMatr1, DiagMatr2, DiagMatr, FullStateDiagMatr
+
     validate_matrixFields(matr, caller);
 
     // syncable matrices must be synced before reporting (though only CPU elems are printed)
-    if constexpr (util_isHeapMatrixType<T>())
+    if constexpr (util_isHeapMatrixType(matr))
         validate_matrixIsSynced(matr, caller);
 
     // calculate the total memory (in bytes) consumed by the matrix on each
@@ -761,11 +754,12 @@ void validateAndPrintMatrix(T matr, const char* caller) {
     // is not included since it is less than or equal to the CPU memory, and
     // occupies different memory spaces, confusing capacity accounting
     int numNodes = (util_isDistributedMatrix(matr))? comm_getNumNodes() : 1;
-    size_t elemMem = mem_getLocalMatrixMemoryRequired(matr.numQubits, util_isDenseMatrixType<T>(), numNodes);
+    bool isDense = util_isDenseMatrixType(matr);
+    size_t elemMem = mem_getLocalMatrixMemoryRequired(matr.numQubits, isDense, numNodes);
     size_t structMem = sizeof(matr);
 
     // struct memory includes fixed-size arrays (qcomp[][]), so we undo double-counting
-    if (util_isFixedSizeMatrixType<T>())
+    if (util_isFixedSizeMatrixType(matr))
         structMem -= elemMem;
 
     size_t numBytesPerNode = elemMem + structMem;

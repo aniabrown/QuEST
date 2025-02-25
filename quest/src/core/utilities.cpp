@@ -290,9 +290,8 @@ qcomp util_getPowerOfI(size_t exponent) {
  * MATRIX CONJUGATION
  */
 
-// type T can be qcomp** or qcomp*[]
-template <typename T>
-void setDenseElemsConj(T elems, qindex dim) {
+void setDenseElemsConj(auto elems, qindex dim) {
+    // elems = qcomp** or qcomp*[] 
     for (qindex i=0; i<dim; i++)
         for (qindex j=0; j<dim; j++)
            elems[i][j] = conj(elems[i][j]);
@@ -339,9 +338,9 @@ void util_setConj(DiagMatr matrix) {
  * MATRIX UNITARITY
  */
 
-// type T can be qcomp** or qcomp*[]
-template <typename T>
-bool isUnitary(T elems, qindex dim, qreal eps) {
+bool isUnitary(auto elems, qindex dim, qreal eps) {
+    // elems = qcomp** or qcomp*[]
+
     assert_utilsGivenNonZeroEpsilon(eps);
 
     qreal epsSq = eps * eps;
@@ -436,9 +435,9 @@ bool util_isUnitary(FullStateDiagMatr matrix, qreal eps) {
  * MATRIX HERMITICITY
  */
 
-// type T can be qcomp** or qcomp*[]
-template <typename T>
-bool isHermitian(T elems, qindex dim, qreal eps) {
+bool isHermitian(auto elems, qindex dim, qreal eps) {
+    // elems = qcomp** or qcomp*[]
+
     assert_utilsGivenNonZeroEpsilon(eps);
 
     qreal epsSq = eps * eps;
@@ -566,9 +565,8 @@ bool util_isCPTP(KrausMap map, qreal eps) {
     return true;
 }
 
-// T can be qcomp*** or vector<vector<vector<qcomp>>>
-template <typename T> 
-void setSuperoperator(qcomp** superop, T matrices, int numMatrices, qindex logMatrixDim) {
+void setSuperoperator(qcomp** superop, auto matrices, int numMatrices, qindex logMatrixDim) {
+    // matrices = qcomp*** or vector<vector<vector<qcomp>>>
 
     // TODO:
     // we initialise the superoperator completely serially, under the assumption that the

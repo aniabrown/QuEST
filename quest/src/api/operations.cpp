@@ -30,15 +30,15 @@ extern bool paulis_hasOddNumY(PauliStr str);
 extern PauliStr paulis_getShiftedPauliStr(PauliStr str, int pauliShift);
 extern PauliStr paulis_getKetAndBraPauliStr(PauliStr str, Qureg qureg);
 
-// T can be CompMatr, CompMatr1, CompMatr2, DiagMatr, DiagMatr1, DiagMatr2
-template <class T>
-void validateAndApplyAnyCtrlAnyTargUnitaryMatrix(Qureg qureg, int* ctrls, int* states, int numCtrls, int* targs, int numTargs, T matr, const char* caller) {
+void validateAndApplyAnyCtrlAnyTargUnitaryMatrix(Qureg qureg, int* ctrls, int* states, int numCtrls, int* targs, int numTargs, auto matr, const char* caller) {
+    // matr = CompMatr, CompMatr1, CompMatr2, DiagMatr, DiagMatr1, DiagMatr2
+
     validate_quregFields(qureg, caller);
     validate_controlsAndTargets(qureg, ctrls, numCtrls, targs, numTargs, caller);
     validate_controlStates(states, numCtrls, caller);
     validate_matrixDimMatchesTargets(matr, numTargs, caller); // also checks fields and is-synced
     validate_matrixIsUnitary(matr, caller); // harmlessly rechecks fields and is-synced
-    if (util_isDenseMatrixType<T>())
+    if (util_isDenseMatrixType(matr))
         validate_mixedAmpsFitInNode(qureg, numTargs, caller);
 
     auto ctrlVec  = util_getVector(ctrls,  numCtrls);

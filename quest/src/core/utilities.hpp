@@ -95,19 +95,20 @@ qcomp util_getPowerOfI(size_t exponent);
  * defined here in the header since templated, and which use compile-time inspection.
  */
 
-template <class T> constexpr bool util_isQuregType() { return is_same_v<T, Qureg>; }
-template <class T> constexpr bool util_isCompMatr1() { return is_same_v<T, CompMatr1>; }
-template <class T> constexpr bool util_isCompMatr2() { return is_same_v<T, CompMatr2>; }
-template <class T> constexpr bool util_isCompMatr () { return is_same_v<T, CompMatr >; }
-template <class T> constexpr bool util_isDiagMatr1() { return is_same_v<T, DiagMatr1>; }
-template <class T> constexpr bool util_isDiagMatr2() { return is_same_v<T, DiagMatr2>; }
-template <class T> constexpr bool util_isDiagMatr () { return is_same_v<T, DiagMatr >; }
-template <class T> constexpr bool util_isFullStateDiagMatr () { return is_same_v<T, FullStateDiagMatr >; }
 
-template<class T>
-constexpr bool util_isDenseMatrixType() {
+constexpr bool util_isQuregType(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, Qureg>; }
+constexpr bool util_isCompMatr1(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, CompMatr1>; }
+constexpr bool util_isCompMatr2(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, CompMatr2>; }
+constexpr bool util_isCompMatr (auto&& x) { return is_same_v<std::decay_t<decltype(x)>, CompMatr >; }
+constexpr bool util_isDiagMatr1(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, DiagMatr1>; }
+constexpr bool util_isDiagMatr2(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, DiagMatr2>; }
+constexpr bool util_isDiagMatr (auto&& x) { return is_same_v<std::decay_t<decltype(x)>, DiagMatr >; }
+constexpr bool util_isFullStateDiagMatr(auto&& x) { return is_same_v<std::decay_t<decltype(x)>, FullStateDiagMatr>; }
 
-    // CompMatr, SuperOp and (in are sense) KrausMaps are "dense", storing all 2D elements
+constexpr bool util_isDenseMatrixType(auto&& x) {
+    using T = std::decay_t<decltype(x)>;
+
+    // CompMatr, SuperOp and (in a sense) KrausMaps are "dense", storing all 2D elements
     if constexpr (
         is_same_v<T, CompMatr1> ||
         is_same_v<T, CompMatr2> ||
@@ -130,8 +131,8 @@ constexpr bool util_isDenseMatrixType() {
     return false;
 }
 
-template<class T>
-constexpr bool util_isFixedSizeMatrixType() {
+constexpr bool util_isFixedSizeMatrixType(auto&& x) {
+    using T = std::decay_t<decltype(x)>;
 
     return (
         is_same_v<T, CompMatr1> ||
@@ -141,76 +142,65 @@ constexpr bool util_isFixedSizeMatrixType() {
     );
 }
 
-template<class T>
-constexpr bool util_isHeapMatrixType() {
+constexpr bool util_isHeapMatrixType(auto&& x) {
 
     // all non-fixed size matrices are stored in the heap (never the stack)
-    return ! util_isFixedSizeMatrixType<T>();
+    return ! util_isFixedSizeMatrixType(x);
 }
 
-template<class T>
-constexpr bool util_isDistributableType() {
-
+constexpr bool util_isDistributableType(auto&& x) {
+    using T = std::decay_t<decltype(x)>;
     return (is_same_v<T, FullStateDiagMatr> || is_same_v<T, Qureg>);
 }
 
-template<class T>
-bool util_isDistributedMatrix(T matr) {
+bool util_isDistributedMatrix(auto&& matr) {
 
-    if constexpr (util_isDistributableType<T>())
+    if constexpr (util_isDistributableType(matr))
         return matr.isDistributed;
 
     return false;
 }
 
-template<class T>
-bool util_isGpuAcceleratedMatrix(T matr) {
+bool util_isGpuAcceleratedMatrix(auto&& matr) {
 
-    if constexpr (util_isFullStateDiagMatr<T>())
+    if constexpr (util_isFullStateDiagMatr(matr))
         return matr.isGpuAccelerated;
 
-    if constexpr (util_isHeapMatrixType<T>())
+    if constexpr (util_isHeapMatrixType(matr))
         return getQuESTEnv().isGpuAccelerated;
 
     return false;
 }
 
-template<class T>
-std::string util_getMatrixTypeName() {
+std::string util_getMatrixTypeName(auto&& matr) {
     
-    if constexpr (is_same_v<T, CompMatr1>) return "CompMatr1";
-    if constexpr (is_same_v<T, CompMatr2>) return "CompMatr2";
-    if constexpr (is_same_v<T, CompMatr >) return "CompMatr" ;
-    if constexpr (is_same_v<T, DiagMatr1>) return "DiagMatr1";
-    if constexpr (is_same_v<T, DiagMatr2>) return "DiagMatr2";
-    if constexpr (is_same_v<T, DiagMatr >) return "DiagMatr" ;
-    if constexpr (is_same_v<T, FullStateDiagMatr>)
-        return "FullStateDiagMatr";
-
-    // these types do not need to have this function called, but
-    // we include them for completeness
-    if constexpr (is_same_v<T, KrausMap >) return "KrausMap" ;
-    if constexpr (is_same_v<T, SuperOp >) return "SuperOp" ;
+    if constexpr (util_isCompMatr1(matr)) return "CompMatr1";
+    if constexpr (util_isCompMatr2(matr)) return "CompMatr2";
+    if constexpr (util_isCompMatr (matr)) return "CompMatr" ;
+    if constexpr (util_isDiagMatr1(matr)) return "DiagMatr1";
+    if constexpr (util_isDiagMatr2(matr)) return "DiagMatr2";
+    if constexpr (util_isDiagMatr (matr)) return "DiagMatr" ;
+    if constexpr (util_isFullStateDiagMatr(matr)) return "FullStateDiagMatr";
 
     // no need to create a new error for this situation
     return "UnrecognisedMatrix";
 }
 
-template<class T>
-qindex util_getMatrixDim(T matr) {
+qindex util_getMatrixDim(auto&& matr) {
     
-    if constexpr (util_isDenseMatrixType<T>())
+    if constexpr (util_isDenseMatrixType(matr))
         return matr.numRows;
     else
         return matr.numElems;
 }
 
-// T can be CompMatr, DiagMatr, FullStateDiagMatr, SuperOp (but NOT KrausMap)
-template<class T>
-qcomp* util_getGpuMemPtr(T matr) {
+qcomp* util_getGpuMemPtr(auto&& matr) {
+
+    // matr = CompMatr, DiagMatr, FullStateDiagMatr, 
+    //        SuperOp, but NOT KrausMap
 
     // 2D CUDA structures are always stored as 1D
-    if constexpr (util_isDenseMatrixType<T>())
+    if constexpr (util_isDenseMatrixType(matr))
         return matr.gpuElemsFlat;
     else
         return matr.gpuElems;

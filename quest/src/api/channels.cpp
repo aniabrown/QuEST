@@ -101,9 +101,8 @@ bool didAnyLocalAllocsFail(KrausMap map) {
 }
 
 
-// T will be SuperOp or KrausMap
-template <typename T>
-void freeAllMemoryIfAnyAllocsFailed(T obj) {
+void freeAllMemoryIfAnyAllocsFailed(auto obj) {
+    // obj = SuperOp or KrausMap
 
     // determine whether any node experienced a failure
     bool anyFail = didAnyLocalAllocsFail(obj);
@@ -248,9 +247,8 @@ extern "C" void syncKrausMap(KrausMap map) {
  */
 
 
-// T can be qcomp** or vector<vector<qcomp>>
-template <typename T> 
-void setAndSyncSuperOpElems(SuperOp op, T matrix) {
+void setAndSyncSuperOpElems(SuperOp op, auto matrix) {
+    // matrix = qcomp** or vector<vector<qcomp>>
     
     // overwrite the CPU matrix
     cpu_copyMatrix(op.cpuElems, matrix, op.numRows);
@@ -284,9 +282,8 @@ void setSuperOp(SuperOp op, vector<vector<qcomp>> matrix) {
  */
 
 
-// type T can be qcomp*** or vector<vector<vector<qcomp>>>
-template <typename T> 
-void setAndSyncKrausMapElems(KrausMap map, T matrices) {
+void setAndSyncKrausMapElems(KrausMap map, auto matrices) {
+    // matrices = qcomp*** or vector<vector<vector<qcomp>>>
 
     // copy over the given matrices into the map's CPU mmemory
     for (int n=0; n<map.numMatrices; n++)

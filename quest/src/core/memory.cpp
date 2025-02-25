@@ -355,8 +355,7 @@ bool mem_canSuperOpFitInMemory(int numQubits, qindex numBytesPerNode) {
  */
 
 
-template <typename T>
-bool isNonNull(T ptr) {
+bool isNonNull(auto ptr) {
 
     // note that (ptr == None) implies (ptr == nullptr)
     return ptr != nullptr;
