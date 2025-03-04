@@ -1,58 +1,85 @@
 
+<!-- TODO: update all paths to be absolute (rather than relative) as per below comment ->
+
 <!-- This README avoids relative paths since it is also used as Doxygen's mainpage -->
 
-<!-- banner -->
-[<img src="https://github.com/QuEST-Kit/QuEST/blob/master/doxyconfig/banner.png?raw=true" alt="The QuEST logo" width=500>](https://quest.qtechtheory.org)
 
 
-<!-- temporarily hiding Github Actions badges (pending aesthetic customisation)
-    [![Ubuntu unit](https://github.com/QuEST-Kit/QuEST/workflows/Ubuntu%20unit/badge.svg?branch=develop)](https://github.com/QuEST-Kit/QuEST/actions)
-    [![macOS unit](https://github.com/QuEST-Kit/QuEST/workflows/macOS%20unit/badge.svg)](https://github.com/QuEST-Kit/QuEST/actions)
-    [![LLVM](https://github.com/QuEST-Kit/QuEST/workflows/LLVM%20asan/badge.svg)](https://github.com/QuEST-Kit/QuEST/actions)
- -->
-<!-- temporarily hiding incorrect coverage statistics 
-(currently only considers serial CPU; needs also GPU and distributed test contributions)
-    [![codecov](https://codecov.io/gh/QuEST-Kit/QuEST/branch/develop/graph/badge.svg)](https://codecov.io/gh/QuEST-Kit/QuEST)
--->
+<!-- banner and top badges (centered) -->
+<div align="center">
+
+  <!-- banner -->
+  <a href="https://quest.qtechtheory.org">
+    <img src="docs/config/banner.png?raw=true" alt="The QuEST logo" width=400>
+  </a>
+
+  <!-- TODO: restore CI 'compilation/test pass' badge! -->
+  [![DOI](https://img.shields.io/badge/DOI-10.1038%2Fs41598--019--47174--9-yellow.svg)](https://doi.org/10.1038/s41598-019-47174-9)
+  <br>
+  [![GitHub release](https://img.shields.io/github/release/QuEST-Kit/QuEST)](https://GitHub.com/QuEST-Kit/QuEST/releases/) 
+  [![Doc](https://img.shields.io/badge/doc-Github.io-orange.svg)](https://quest-kit.github.io/QuEST/modules.html)
+  [![MIT license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENCE.txt)
+
+
+</div>
 
 
 
-<!-- action-badges has broken and is incorrectly showing build failure. 
-     temporarily forcing badge to show the correct pass while replacement is sought 
-     (that isn't Github's hideous default CI badge)
-     [![unit tests](https://action-badges.now.sh/QuEST-Kit/QuEST)](https://github.com/QuEST-Kit/QuEST/actions) 
---> 
-[![GitHub release](https://img.shields.io/github/release/QuEST-Kit/QuEST)](https://GitHub.com/QuEST-Kit/QuEST/releases/) 
-[![Doc](https://img.shields.io/badge/doc-Github.io-orange.svg)](https://quest-kit.github.io/QuEST/modules.html)
-[![unit tests](https://img.shields.io/badge/build-passing-green.svg)](https://github.com/QuEST-Kit/QuEST/actions)  <!-- forgive my sins (see above) -->
-[![MIT license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENCE.txt)
+<!-- intro -->
+
+The **Quantum Exact Simulation Toolkit** (QuEST) is a high-performance simulator of quantum statevectors and density matrices.
+It hybridises **multithreading**, **GPU acceleration** and **distribution** to run lightning fast on laptops, desktops and 
+supercomputers, parallelising over multiple cores, CPUs and GPUs. Behind the scenes, QuEST leverages [OpenMP](https://www.openmp.org/),
+[MPI](https://www.mpi-forum.org/), [CUDA](https://developer.nvidia.com/cuda-zone), [HIP](https://rocm.docs.amd.com/projects/HIP/en/docs-develop/what_is_hip.html),
+[Thrust](https://developer.nvidia.com/thrust), [cuQuantum](https://developer.nvidia.com/cuquantum-sdk) and [GPUDirect](https://developer.nvidia.com/gpudirect)
+for cutting-edge performance on modern multi-GPU clusters, and compatibility with older NVIDIA and AMD GPUs. These deployments can 
+be combined in any combination, or automatically decided at runtime, yet are abstracted behind a single, seamless interface, accessible 
+by both `C` and `C++` and all the major compilers (detailed [here](docs/compilers.md)).
 
 
-The **Quantum Exact Simulation Toolkit** is a high performance simulator of quantum circuits, state-vectors and density matrices. QuEST uses **multithreading**, **GPU acceleration** and **distribution** to run lightning first on laptops, desktops and networked supercomputers. 
-QuEST *just works*; it is stand-alone, requires no installation, and is trivial to compile and run. 
-QuEST hybridises [OpenMP](https://www.openmp.org/) and [MPI](https://www.mpi-forum.org/) with _huge_ compiler support to run on all sorts of multicore, multi-CPU and distributed hardware, uses [HIP](https://docs.amd.com/bundle/HIP-Programming-Guide-v5.3) to run on AMD GPUs, integrates [cuQuantum](https://developer.nvidia.com/cuquantum-sdk) and [Thrust](https://developer.nvidia.com/thrust) for cutting-edge performance on modern NVIDIA GPUs, and has a custom kernel backend to run on older CUDA-compatible GPUs. 
-And it hides these deployment modes behind a single, seamless interface.
 
-[![Languages](https://img.shields.io/badge/C-99-ff69b4.svg)](http://www.open-std.org/jtc1/sc22/wg14/www/standards.html#9899)
-[![Languages](https://img.shields.io/badge/C++-11-ff69b4.svg)](https://isocpp.org/wiki/faq/cpp11)
-![OS](https://img.shields.io/badge/os-MacOS-9cbd3c.svg)
-![OS](https://img.shields.io/badge/os-Linux-9cbd3c.svg)
-![OS](https://img.shields.io/badge/os-Windows-9cbd3c.svg)
-[![Platforms](https://img.shields.io/badge/multithreaded-OpenMP-6699ff.svg)](https://www.openmp.org/)
-[![Platforms](https://img.shields.io/badge/distributed-MPI-6699ff.svg)](https://www.mpi-forum.org/) 
-[![Platforms](https://img.shields.io/badge/GPU-CUDA-6699ff.svg)](https://developer.nvidia.com/cuda-zone)
-[![Platforms](https://img.shields.io/badge/GPU-AMD-6699ff.svg)](https://docs.amd.com/bundle/HIP-Programming-Guide-v5.3)
-[![Platforms](https://img.shields.io/badge/GPU-cuQuantum-6699ff.svg)](https://developer.nvidia.com/cuquantum-sdk)
+<!-- detail badgets (centered) -->
 
-QuEST is developed by the [QTechTheory](http://qtechtheory.org/) group at the University of Oxford, and [these authors](https://github.com/QuEST-Kit/QuEST/blob/master/AUTHORS.txt). To learn more:
-- see the [tutorial](https://github.com/QuEST-Kit/QuEST/blob/master/examples/README.md)
-- view the [documentation](https://quest-kit.github.io/QuEST/modules.html)
+<div align="center">
+
+  [![Languages](https://img.shields.io/badge/C-11-ff69b4.svg)](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3631.pdf)
+  [![Languages](https://img.shields.io/badge/C++-14-ff69b4.svg)](https://isocpp.org/wiki/faq/cpp14)
+  ![OS](https://img.shields.io/badge/os-MacOS-9cbd3c.svg)
+  ![OS](https://img.shields.io/badge/os-Linux-9cbd3c.svg)
+  ![OS](https://img.shields.io/badge/os-Windows-9cbd3c.svg) <br>
+  [![Platforms](https://img.shields.io/badge/multithreaded-OpenMP-6699ff.svg)](https://www.openmp.org/)
+  [![Platforms](https://img.shields.io/badge/distributed-MPI-6699ff.svg)](https://www.mpi-forum.org/) 
+  [![Platforms](https://img.shields.io/badge/GPU-CUDA-6699ff.svg)](https://developer.nvidia.com/cuda-zone)
+  [![Platforms](https://img.shields.io/badge/GPU-AMD-6699ff.svg)](https://docs.amd.com/bundle/HIP-Programming-Guide-v5.3)
+
+</div>
+
+
+QuEST development is led by the [QTechTheory](http://qtechtheory.org/) group at the University of Oxford, with active contributions from the [EPCC](https://www.epcc.ed.ac.uk/) team at the University of Edinburgh, and support from the below organisations.
+In particular, QuEST `v4` was made possible through the support of the UK National Quantum Computing centre (_NQCC200921_) and the [UKRI SEEQA](https://gtr.ukri.org/projects?ref=EP%2FY004655%2F1#/tabOverview) project.
+
+<div align="center">
+
+  <img src="docs/config/logos/nqcc.png" alt="NQCC" height=30> &nbsp;
+  <img src="docs/config/logos/amd.png" alt="AMD" height=25> &nbsp;
+  <img src="docs/config/logos/nvidia.png" alt="NVIDIA" height=25> &nbsp;
+  <img src="docs/config/logos/qmt.png" alt="Quantum Motion" height=25> &nbsp;
+  <img src="docs/config/logos/edinburgh.png" alt="University of Edinburgh" height=25> &nbsp;
+  <img src="docs/config/logos/oxford.png" alt="University of Oxford" height=28> &nbsp;
+
+</div>
+
+To learn more:
+
 - visit the [website](https://quest.qtechtheory.org/)
-- see some [examples](https://github.com/QuEST-Kit/QuEST/blob/master/examples/)
+- see some [examples](/examples/)
+- view the [documentation](/docs/)
 - read the [whitepaper](https://www.nature.com/articles/s41598-019-47174-9), which featured in Scientific Report's [Top 100 in Physics](https://www.nature.com/collections/ecehgdfcba/) :trophy:
 
-[![DOI](https://img.shields.io/badge/DOI-10.1038%2Fs41598--019--47174--9-yellow.svg)](https://doi.org/10.1038/s41598-019-47174-9)
-[![Email](https://img.shields.io/badge/email-quest@materials.ox.ac.uk-red.svg)](mailto:quest@materials.ox.ac.uk)
+<div align="center">
+
+
+</div>
 
 ---------------------------------
 
