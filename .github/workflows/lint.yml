@@ -16,10 +16,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           extensions: 'c,h,cpp,hpp,cu,cuh'
+          style: file
+          files-changed-only: false
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
       - name: fail if code stinky
         if: steps.linter.outputs.checks-failed > 0
